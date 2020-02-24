@@ -1,25 +1,24 @@
-const express = require('express');
-const expressHandlebars = require('express-handlebars');
-const {credentials} = require('./config');
-const expressSession = require('express-session');
+const express = require('express')
+const expressHandlebars = require('express-handlebars')
+const {credentials} = require('./config')
+const expressSession = require('express-session')
 const redis = require('redis')
 const RedisStore = require('connect-redis')(expressSession)
 const redisClient = redis.createClient({url: credentials.redis.url})
-const bodyParser = require('body-parser');
-const handlers = require('./lib/handlers');
-const cookieParser = require('cookie-parser');
-const flashMiddleWare = require('./lib/middleware/flashMiddleWare');
+const bodyParser = require('body-parser')
+const handlers = require('./lib/handlers')
+const cookieParser = require('cookie-parser')
+const fs = require('fs')
+const flashMiddleWare = require('./lib/middleware/flashMiddleWare')
+const autoRenderViews = require('./lib/middleware/autoRenderViews')
 const morgan = require('morgan')
+const app = express()
 
-
-
-const app = express();
-//database
+//database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
 //routes
 require('./lib/routes')(app)
-require('./lib/middleware/autoRenderViews')(app)
 function startServer(port) {
     app.listen(port, function() {
         console.log(`Express started in ${app.get('env')} ` +
@@ -28,8 +27,6 @@ function startServer(port) {
     })
 }
 
-
-const port = process.env.PORT || 3000;
 app.engine('handlebars', expressHandlebars({
     defaultLayout: 'main',
     helpers: {
@@ -38,17 +35,17 @@ app.engine('handlebars', expressHandlebars({
             this._sections[name] = options.fn(this)
         },
     }
-}));
-app.set('view engine', 'handlebars');
-
+}))
+app.set('view engine', 'handlebars')
+const stream = fs.createWriteStream(__dirname+ '/access.log',
+    {flags: 'a'})
 switch(app.get('env')){
     case 'production':
-        const stream = fs.createWriteStream(__dirname+ '/access.log',
-            {flags: 'a'})
         app.use(morgan('combined',{stream: stream}))
         break
     default:
         app.use(morgan('dev'))
+        stream.close()
 }
 app.use(cookieParser(credentials.cookieSecret))
 app.use(expressSession({
@@ -62,15 +59,15 @@ app.use(expressSession({
 
 }))
 app.use(flashMiddleWare)
-
-app.use(express.static(__dirname + '/public'));
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.json());
-app.use(handlers.notFound);
-app.use(handlers.serverError);
+app.use(autoRenderViews)
+app.use(express.static(__dirname + '/public'))
+app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.json())
+app.use(handlers.notFound)
+app.use(handlers.serverError)
 
 if(require.main === module) {
     startServer(process.env.PORT || 3000)
 } else {
-    module.exports = startServer;
+    module.exports = startServer
 }
