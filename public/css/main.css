@@ -1,0 +1,36 @@
+body{
+    line-height:1.6;
+    font-size:18px;
+    color:#444;
+    font-family: Arial, Helvetica, sans-serif;
+}
+h1,h2,h3{
+    line-height:1.2
+}
+
+.container {
+    font-size: 20pt;
+}
+
+#header{
+    padding: 20px ;
+    border-bottom-color: #444444;
+    border-style: solid;
+    border-width: 0px 0px 4px 0px;
+}
+#newsletterSubmitButton {
+    font-size: 20pt;
+    width: 100%
+}
+
+#newsletterSignupFormContainer {
+    max-width:450px; margin:0 auto
+}
+
+a.currency {
+    text-decoration: none;
+}
+.currency.selected {
+    font-weight: bold;
+    font-size: 150%;
+}
