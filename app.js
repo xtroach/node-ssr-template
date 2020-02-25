@@ -15,7 +15,6 @@ const morgan = require('morgan')
 const api = require('./routes/api')
 
 const app = express()
-const auth = require('./lib/auth')(app,{providers: credentials.authProviders})
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
@@ -68,6 +67,8 @@ app.use(bodyParser.json())
 
 app.get('/', (req,res)=>res.render('home'))
 app.use('/api', api)
+const auth = require('./lib/auth')(app,{baseUrl: "https://damp-temple-34771.herokuapp.com/", providers: credentials.authProviders})
+
 auth.init()
 auth.registerRoutes()
 app.use(handlers.notFound)
