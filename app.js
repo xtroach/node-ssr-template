@@ -13,8 +13,9 @@ const flashMiddleWare = require('./lib/middleware/flashMiddleWare')
 const autoRenderViews = require('./lib/middleware/autoRenderViews')
 const morgan = require('morgan')
 const api = require('./routes/api')
-const app = express()
 
+const app = express()
+const auth = require('./lib/auth')(app,{providers: credentials.authProviders})
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
@@ -67,6 +68,8 @@ app.use(bodyParser.json())
 
 app.get('/', (req,res)=>res.render('home'))
 app.use('/api', api)
+auth.init()
+auth.registerRoutes()
 app.use(handlers.notFound)
 app.use(handlers.serverError)
 

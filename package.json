@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint app.js lib",
-	"start": "node app.js"
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +22,8 @@
     "mongoose": "^5.9.2",
     "morgan": "^1.9.1",
     "multiparty": "^4.2.1",
+    "passport": "^0.4.1",
+    "passport-twitter": "^1.0.4",
     "pg": "^7.18.2",
     "redis": "^3.0.2"
   },
