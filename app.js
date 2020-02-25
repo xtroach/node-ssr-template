@@ -12,13 +12,13 @@ const fs = require('fs')
 const flashMiddleWare = require('./lib/middleware/flashMiddleWare')
 const autoRenderViews = require('./lib/middleware/autoRenderViews')
 const morgan = require('morgan')
+const api = require('./routes/api')
 const app = express()
 
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
-//routes
-require('./lib/routes')(app)
+
 function startServer(port) {
     app.listen(port, function() {
         console.log(`Express started in ${app.get('env')} ` +
@@ -63,11 +63,15 @@ app.use(autoRenderViews)
 app.use(express.static(__dirname + '/public'))
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
+
+
+app.get('/', (req,res)=>res.render('home'))
+app.use('/api', api)
 app.use(handlers.notFound)
 app.use(handlers.serverError)
 
 if(require.main === module) {
-    startServer(process.env.PORT || 3000)
+    startServer(process.env.PORT || 3033)
 } else {
     module.exports = startServer
 }
