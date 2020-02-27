@@ -1,0 +1,17 @@
+
+<div class="form-inline my-2 my-lg-0">
+    <div class="row">
+        <div class="col-sm pt-2">
+            <a href="/user/profile"><span>{{loggedUser.name}}</span></a>
+        </div>
+
+        <div class="col-md-auto">
+            {{#unless loggedUser}}
+                <a href="/login" class="btn btn-primary btn-block my-2 my-sm-0">Log in</a>
+            {{/unless}}
+            {{#if loggedUser}}
+                 <a href="/user/logout"class="btn btn-secondary btn-block my-2 my-sm-0">Log out</a>
+            {{/if}}
+        </div>
+    </div>
+</div>

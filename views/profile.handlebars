@@ -1,0 +1,40 @@
+{{#section 'title'}}
+    <title>fk - Profile</title>
+{{/section}}
+
+{{#section 'style'}}
+    <link href="/css/profile.css" rel="stylesheet">
+{{/section}}
+
+
+
+<div class="card-deck mb-3 mt-5">
+    <div class="card mb-4 box-shadow">
+        <div class="card-header">
+            <h4 class="my-0 font-weight-normal">{{index}}</h4>
+        </div>
+        <div class="card-body">
+            <form {{#if edit}}method="POST" action=""{{/if}}>
+                <div class="profile-form-constrainer">
+                    {{#each data}}
+                        {{edit}}
+                        <div class="form-group row mb-0">
+                            <label for="{{@key}}" class="col-sm-3 col-form-label">{{this.label}}:</label>
+                            <div class="col-sm-8">
+                                <input name="{{@key}}"type="text" {{#if this.editable}}class="form-control"{{else}}class="form-control-plaintext" readonly {{/if}} id="{{@key}}" value="{{this.value}}">
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+                {{#if edit}}
+                    <div class="d-flex justify-content-end"><button class="btn btn-success" type="submit">Save</button></div>
+                {{/if}}
+            </form>
+
+            {{#unless edit}}
+                <div class="d-flex justify-content-end"><a href="delete/confirm"><button class="btn btn-danger mr-1">Delete</button></a><a href="profile/edit/"><button class="btn btn-outline-success">Edit</button></a></div>
+            {{/unless}}
+        </div>
+
+    </div>
+</div>

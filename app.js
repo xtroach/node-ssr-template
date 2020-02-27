@@ -12,12 +12,18 @@ const fs = require('fs')
 const flashMiddleWare = require('./lib/middleware/flashMiddleWare')
 const autoRenderViews = require('./lib/middleware/autoRenderViews')
 const morgan = require('morgan')
-const api = require('./routes/api')
+const apiRoute = require('./routes/apiRouter')
+const userRouter = require('./routes/userRouter')
+const auth = require('./lib/auth')
+
+
 
 const app = express()
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
+
+
 
 function startServer(port) {
     app.listen(port, function() {
@@ -49,28 +55,58 @@ switch(app.get('env')){
 }
 app.use(cookieParser(credentials.cookieSecret))
 app.use(expressSession({
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     secret: credentials.cookieSecret,
     store:  new RedisStore({
         client: redisClient,
         logErrors: true,  // highly recommended!
     }),
-
 }))
 app.use(flashMiddleWare)
-app.use(autoRenderViews)
-app.use(express.static(__dirname + '/public'))
+
+
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
+app.use(auth.passport.initialize());
+app.use(auth.passport.session());
+app.use((req,res,next)=>{
+    if(req.user) {
+        if (!res.locals.loggedUser)
+            res.locals.loggedUser = {
+            _id: req.user._id ? req.user._id : "",
+            authId: req.user.authId ? req.user.authId : "",
+            name: req.user.name ? req.user.name : ""
+        }
+    }
+    next()
+})
 
 
 app.get('/', (req,res)=>res.render('home'))
-app.use('/api', api)
-const auth = require('./lib/auth')(app,{baseUrl: "https://damp-temple-34771.herokuapp.com/", providers: credentials.authProviders})
+app.get('/api/users',(req,res)=>{
 
-auth.init()
-auth.registerRoutes()
+    const User = require('mongoose').model('User');
+    User.findOne({authId: "github:41797801" }, (err,qres) => res.json(qres))
+})
+app.use('/api', apiRoute)
+app.use('/user', userRouter)
+
+app.get('/auth/github', auth.passport.authenticate('github'));
+app.get('/auth/twitter', auth.passport.authenticate('twitter'));
+app.get('/auth/twitter/callback',
+    auth.passport.authenticate('twitter', { failureRedirect: '/login' }),
+    function(req, res) {
+        res.redirect('/profile');
+    });
+app.get('/auth/github/callback',
+    auth.passport.authenticate('github', { failureRedirect: '/login' }),
+    function(req, res) {
+        res.redirect('/user/profile');
+    });
+
+app.use(autoRenderViews)
+app.use(express.static(__dirname + '/public'))
 app.use(handlers.notFound)
 app.use(handlers.serverError)
 
