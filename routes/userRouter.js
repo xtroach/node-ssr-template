@@ -12,8 +12,8 @@ router.get('/logout', function(req, res){
 });
 
 
-router.get('/delete/confirm', (req,res)=>res.render('profile-confirm-deletion.handlebars'))
-router.post('/delete/confirm', userHandler.deleteProfile)
+router.get('/profile/delete/confirm', (req,res)=>res.render('profile-confirm-deletion.handlebars'))
+router.post('/profile/delete/confirm', userHandler.deleteProfile)
 router.get('/profile/edit', userHandler.editProfile)
 router.post('/profile/edit', userHandler.updateProfile)
 router.get('/profile', userHandler.getProfile)

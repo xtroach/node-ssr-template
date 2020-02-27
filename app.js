@@ -83,6 +83,8 @@ app.use((req,res,next)=>{
 })
 
 
+
+
 app.get('/', (req,res)=>res.render('home'))
 app.get('/api/users',(req,res)=>{
 
@@ -97,7 +99,7 @@ app.get('/auth/twitter', auth.passport.authenticate('twitter'));
 app.get('/auth/twitter/callback',
     auth.passport.authenticate('twitter', { failureRedirect: '/login' }),
     function(req, res) {
-        res.redirect('/profile');
+        res.redirect('/user/profile');
     });
 app.get('/auth/github/callback',
     auth.passport.authenticate('github', { failureRedirect: '/login' }),
