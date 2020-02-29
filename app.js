@@ -14,9 +14,8 @@ const autoRenderViews = require('./lib/middleware/autoRenderViews')
 const morgan = require('morgan')
 const apiRoute = require('./routes/apiRouter')
 const userRouter = require('./routes/userRouter')
+const twitterQueries = require('./lib/twitterQueries')
 const auth = require('./lib/auth')
-const twitter = require('./lib/twitter.js')
-const twitterer = twitter(credentials.authProviders.twitter)
 const app = express()
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
@@ -84,7 +83,7 @@ app.use((req,res,next)=>{
 
 
 
-app.get('/', (req,res)=>res.render('home'))
+app.get('/', async (req,res)=>{res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#node #react", {count:3,result_type:"mixed"})() })})
 app.get('/api/users',(req,res)=>{
 
     const User = require('mongoose').model('User');
@@ -92,6 +91,11 @@ app.get('/api/users',(req,res)=>{
 })
 app.use('/api', apiRoute)
 app.use('/user', userRouter)
+
+
+app.get('/social', async (req, res) => {
+    res.render('tweets', { tweets: await twitterQueries.getLimitedSearchFunction("#node #react",2)() })
+})
 app.get('/tweets', async (req, res) => {
     res.send(await twitterer.getToken());
 })
