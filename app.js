@@ -83,7 +83,7 @@ app.use((req,res,next)=>{
 
 
 
-app.get('/', async (req,res)=>{res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#node #react", {count:3,result_type:"mixed"})() })})
+app.get('/', async (req,res)=>{res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#corona", {count:3,result_type:"mixed"})() })})
 app.get('/api/users',(req,res)=>{
 
     const User = require('mongoose').model('User');
@@ -94,7 +94,7 @@ app.use('/user', userRouter)
 
 
 app.get('/social', async (req, res) => {
-    res.render('tweets', { tweets: await twitterQueries.getLimitedSearchFunction("#node #react",2)() })
+    res.render('tweets', { tweets: await twitterQueries.getLimitedSearchFunction("#kissmypiss",2)() })
 })
 app.get('/tweets', async (req, res) => {
     res.send(await twitterer.getToken());
