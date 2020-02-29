@@ -15,9 +15,8 @@ const morgan = require('morgan')
 const apiRoute = require('./routes/apiRouter')
 const userRouter = require('./routes/userRouter')
 const auth = require('./lib/auth')
-
-
-
+const twitter = require('./lib/twitter.js')
+const twitterer = twitter(credentials.authProviders.twitter)
 const app = express()
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
@@ -93,7 +92,9 @@ app.get('/api/users',(req,res)=>{
 })
 app.use('/api', apiRoute)
 app.use('/user', userRouter)
-
+app.get('/tweets', async (req, res) => {
+    res.send(await twitterer.getToken());
+})
 app.get('/auth/github', auth.passport.authenticate('github'));
 app.get('/auth/twitter', auth.passport.authenticate('twitter'));
 app.get('/auth/twitter/callback',
