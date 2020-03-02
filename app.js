@@ -10,6 +10,8 @@ const handlers = require('./lib/handlers')
 const cookieParser = require('cookie-parser')
 const fs = require('fs')
 const flashMiddleWare = require('./lib/middleware/flashMiddleWare')
+ObjectId = require('mongodb').ObjectID;
+
 const autoRenderViews = require('./lib/middleware/autoRenderViews')
 const morgan = require('morgan')
 const apiRoute = require('./routes/apiRouter')
@@ -17,6 +19,7 @@ const userRouter = require('./routes/userRouter')
 const twitterQueries = require('./lib/twitterQueries')
 const auth = require('./lib/auth')
 const app = express()
+const UserGitHubData = require('./models/userGitHubData').UserGitHubData
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
@@ -83,7 +86,26 @@ app.use((req,res,next)=>{
 
 
 
-app.get('/', async (req,res)=>{res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#corona", {count:3,result_type:"mixed"})() })})
+app.get('/', async (req,res)=>{
+    res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#corona", {count:3, lang:"de"})() })
+})
+app.get('/github/commits',  async (req,res)=>{
+    const code = (await UserGitHubData.findOne({user_id: req.user._id})).code
+
+
+    const octokit = await require('./lib/githubQueries')(credentials.authProviders.github, code)
+    const commitData= (await octokit.activity.listEventsForUser({username: ObjectId(req.query.user)})).data
+    const commitInfos = await Promise.all(
+
+        commitData.map( async (commit)=>{
+            const repoOwner = commit.repo.name.split('/')[0];
+            const repoName = commit.repo.name.split('/')[1];
+            const commitInfo = await octokit.repos.listCommits({owner: repoOwner, repo: repoName})
+            return commitInfo
+        })
+    )
+    res.json(commitInfos)
+})
 app.get('/api/users',(req,res)=>{
 
     const User = require('mongoose').model('User');
@@ -93,22 +115,31 @@ app.use('/api', apiRoute)
 app.use('/user', userRouter)
 
 
-app.get('/social', async (req, res) => {
-    res.render('tweets', { tweets: await twitterQueries.getLimitedSearchFunction("#kissmypiss",2)() })
-})
+
 app.get('/tweets', async (req, res) => {
     res.send(await twitterer.getToken());
 })
-app.get('/auth/github', auth.passport.authenticate('github'));
-app.get('/auth/twitter', auth.passport.authenticate('twitter'));
+app.get('/auth/github', (req,res,next) =>{
+    auth.passport.authenticate('github', function (error, user,info) {
+    })(req,res,next)
+});
+
+app.get('/auth/twitter',(req,res,next) => {
+    auth.passport.authenticate('twitter',
+        function (err, user, info) {
+            console.log("After")(req,res,next)
+    })
+})
+
 app.get('/auth/twitter/callback',
     auth.passport.authenticate('twitter', { failureRedirect: '/login' }),
     function(req, res) {
         res.redirect('/user/profile');
     });
-app.get('/auth/github/callback',
-    auth.passport.authenticate('github', { failureRedirect: '/login' }),
-    function(req, res) {
+app.get('/auth/github/callback', auth.passport.authenticate('github', { failureRedirect: '/login' }),
+    async function(req, res) {
+
+        const newCode = await UserGitHubData.findOneAndUpdate({ user_id: req.user._id},{code: req.query.code}, {new: true, upsert: true}, (err,doc)=>{if (err) throw (err)})
         res.redirect('/user/profile');
     });
 
