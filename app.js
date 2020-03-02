@@ -10,7 +10,6 @@ const handlers = require('./lib/handlers')
 const cookieParser = require('cookie-parser')
 const fs = require('fs')
 const flashMiddleWare = require('./lib/middleware/flashMiddleWare')
-ObjectId = require('mongodb').ObjectID;
 
 const autoRenderViews = require('./lib/middleware/autoRenderViews')
 const morgan = require('morgan')
@@ -19,7 +18,7 @@ const userRouter = require('./routes/userRouter')
 const twitterQueries = require('./lib/twitterQueries')
 const auth = require('./lib/auth')
 const app = express()
-const UserGitHubData = require('./models/userGitHubData').UserGitHubData
+const UserGitHubData = require('./models/userGitHubData')
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
@@ -95,7 +94,7 @@ app.get('/github/commits',  async (req,res)=>{
 
     const octokit = await require('./lib/githubQueries')(credentials.authProviders.github, code)
     const commitData= (await octokit.activity.listEventsForUser({username: ObjectId(req.query.user)})).data
-    const commitInfos = await Promise.all(
+  /*  const commitInfos = await Promise.all(
 
         commitData.map( async (commit)=>{
             const repoOwner = commit.repo.name.split('/')[0];
@@ -103,8 +102,8 @@ app.get('/github/commits',  async (req,res)=>{
             const commitInfo = await octokit.repos.listCommits({owner: repoOwner, repo: repoName})
             return commitInfo
         })
-    )
-    res.json(commitInfos)
+    )*/
+    res.json(commitData)
 })
 app.get('/api/users',(req,res)=>{
 
@@ -127,22 +126,23 @@ app.get('/auth/github', (req,res,next) =>{
 app.get('/auth/twitter',(req,res,next) => {
     auth.passport.authenticate('twitter',
         function (err, user, info) {
-            console.log("After")(req,res,next)
-    })
+        }
+    )
 })
 
 app.get('/auth/twitter/callback',
+
     auth.passport.authenticate('twitter', { failureRedirect: '/login' }),
     function(req, res) {
         res.redirect('/user/profile');
     });
 app.get('/auth/github/callback', auth.passport.authenticate('github', { failureRedirect: '/login' }),
     async function(req, res) {
-
-        const newCode = await UserGitHubData.findOneAndUpdate({ user_id: req.user._id},{code: req.query.code}, {new: true, upsert: true}, (err,doc)=>{if (err) throw (err)})
-        res.redirect('/user/profile');
+        res.redirect('/user/profile')
     });
 
+
+app.get('/commits', widgetHan)
 app.use(autoRenderViews)
 app.use(express.static(__dirname + '/public'))
 app.use(handlers.notFound)
