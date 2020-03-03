@@ -20,6 +20,7 @@ const twitterQueries = require('./lib/twitterQueries')
 const auth = require('./lib/auth')
 const app = express()
 const UserGitHubData = require('./models/userGitHubData')
+let githubFunc
 //database TODO: probably don't neeed both mono and postgress
 require('./lib/db/mongoLink')
 require('./lib/db/postgressLink')
@@ -39,8 +40,15 @@ app.engine('handlebars', expressHandlebars({
     helpers: {
         section: function(name, options) {
             if (!this._sections) this._sections = {}
-            this._sections[name] = options.fn(this)
+            this._sections[name] = this._sections[name] ? this._sections[name] : "" + options.fn(this)
         },
+        slicer: function(string, start,end){
+            return string.slice(start,end)
+        },
+        formatDateFromString: function (date) {
+            const dateDate = new Date(date)
+            return ('0' + dateDate.getDate()).slice(-2)+ '.' + ('0' + dateDate.getMonth()).slice(-2) + '.' + dateDate.getFullYear() + " "  + ('0' + dateDate.getHours()).slice(-2) + ":" + ('0' + dateDate.getMinutes()).slice(-2);
+        }
     }
 }))
 app.set('view engine', 'handlebars')
@@ -87,7 +95,12 @@ app.use((req,res,next)=>{
 
 
 app.get('/', async (req,res)=>{
-    res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#corona", {count:3, lang:"de"})() })
+
+    if(!githubFunc){
+        githubFunc= await handler.getLastThreeGitHubCommitsToRepo(req)
+    }
+    const commits = (await githubFunc(req,res)).data.slice(0,2)
+    res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#corona", {count:3, lang:"de"})(), commits: commits})
 })
 app.get('/api/users',(req,res)=>{
 
@@ -129,8 +142,8 @@ app.get('/auth/github/callback', auth.passport.authenticate('github', { failureR
 
 
 app.get('/commits', async(req,res,next) => {
-    const githubFunct = await handler.gitHubCommits()
-    githubFunct(req,res).then((data)=>res.json(data)).catch((err)=>next(err))
+    const githubFunct = await handler.getLastThreeGitHubCommitsToRepo(req)
+    githubFunct(req,res).then((data)=>res.json((data.data).slice(0,2))).catch((err)=>next(err))
 })
 app.use(autoRenderViews)
 app.use(express.static(__dirname + '/public'))

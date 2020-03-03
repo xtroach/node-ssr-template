@@ -1,0 +1,49 @@
+{{#section 'title'}}
+    <title>fk - Sign in</title>
+{{/section}}
+
+{{#section 'style'}}
+    <link href="/css/commit.css" rel="stylesheet">
+{{/section}}
+
+<div class="container commit-container mt-3" >
+
+
+
+    {{#each commits}}
+
+        <div class="row">
+            <div class="card mb-2 box-shadow commit-card">
+
+                <ul class="list-group list-group-flush">
+                    <div class="card-header commit-card-body">
+                        <div class="media">
+                            <a href="{{this.author.html_url}}"><img class="commit-avatar-image mr-2" src="{{this.author.avatar_url}}">   <a href="{{this.author.html_url}}">
+                                <div class="media-body">
+                                    <a href="{{this.author.html_url}}">
+                                        <h5 class="card-title  commit-card-title">{{this.commit.author.name}}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">{{this.author.login}}</h6>
+                                    </a>
+                                </div>
+
+                        </div>
+                    </div>
+
+
+                    <li class="list-group-item">{{this.commit.message}}</li>
+                 </ul>
+                <div class="card-footer commit-card-footer">
+                    <div class="row">
+                        <div class="col-4">{{formatDateFromString this.commit.author.date}}</div>
+                        <div class="col align-self-end text-right">
+                               <a href="{{this.html_url}}">{{slicer this.commit.tree.sha 0 8}}</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    {{/each}}
+
+
+</div>
