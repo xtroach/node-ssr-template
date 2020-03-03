@@ -9,6 +9,7 @@ const bodyParser = require('body-parser')
 const handlers = require('./lib/handlers')
 const cookieParser = require('cookie-parser')
 const fs = require('fs')
+const handler = require('./lib/handlers/handler')
 const flashMiddleWare = require('./lib/middleware/flashMiddleWare')
 
 const autoRenderViews = require('./lib/middleware/autoRenderViews')
@@ -88,23 +89,6 @@ app.use((req,res,next)=>{
 app.get('/', async (req,res)=>{
     res.render('home',{ tweets: await twitterQueries.getLimitedSearchFunction("#corona", {count:3, lang:"de"})() })
 })
-app.get('/github/commits',  async (req,res)=>{
-    const code = (await UserGitHubData.findOne({user_id: req.user._id})).code
-
-
-    const octokit = await require('./lib/githubQueries')(credentials.authProviders.github, code)
-    const commitData= (await octokit.activity.listEventsForUser({username: ObjectId(req.query.user)})).data
-  /*  const commitInfos = await Promise.all(
-
-        commitData.map( async (commit)=>{
-            const repoOwner = commit.repo.name.split('/')[0];
-            const repoName = commit.repo.name.split('/')[1];
-            const commitInfo = await octokit.repos.listCommits({owner: repoOwner, repo: repoName})
-            return commitInfo
-        })
-    )*/
-    res.json(commitData)
-})
 app.get('/api/users',(req,res)=>{
 
     const User = require('mongoose').model('User');
@@ -131,18 +115,23 @@ app.get('/auth/twitter',(req,res,next) => {
 })
 
 app.get('/auth/twitter/callback',
-
     auth.passport.authenticate('twitter', { failureRedirect: '/login' }),
-    function(req, res) {
-        res.redirect('/user/profile');
-    });
+        function(req, res) {
+            res.redirect('/user/profile');
+        }
+);
 app.get('/auth/github/callback', auth.passport.authenticate('github', { failureRedirect: '/login' }),
     async function(req, res) {
         res.redirect('/user/profile')
-    });
+    }
+)
 
 
-app.get('/commits', widgetHan)
+
+app.get('/commits', async(req,res,next) => {
+    const githubFunct = await handler.gitHubCommits()
+    githubFunct(req,res).then((data)=>res.json(data)).catch((err)=>next(err))
+})
 app.use(autoRenderViews)
 app.use(express.static(__dirname + '/public'))
 app.use(handlers.notFound)
