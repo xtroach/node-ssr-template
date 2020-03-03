@@ -123,6 +123,7 @@ app.get('/auth/github', (req,res,next) =>{
 app.get('/auth/twitter',(req,res,next) => {
     auth.passport.authenticate('twitter',
         function (err, user, info) {
+            res.redirect('/user/profile')
         }
     )
 })

@@ -25,7 +25,10 @@
     font-weight: 700;
 
 }
-
+.commit-github-logo{
+    width: 25px;
+    height: 25px;
+}
 .commit-card-subtitle{
     color: rgb(105, 120, 130);
     font-size: 14px;
